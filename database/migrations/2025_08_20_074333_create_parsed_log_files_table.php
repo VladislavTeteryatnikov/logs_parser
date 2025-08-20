@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('parsed_at');
 
             $table->unique('file_hash');
-            $table->index('filename');
+            $table->index('file_name');
         });
     }
 

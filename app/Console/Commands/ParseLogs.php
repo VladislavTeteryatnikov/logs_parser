@@ -48,6 +48,12 @@ class ParseLogs extends Command
             return 1;
         }
 
+        // Проверяем, распаршен ли файл
+        if ($this->hasBeenParsed($filePath)) {
+            $this->info("Файл уже был обработан: $filePath");
+            return 0;
+        }
+
         $this->info("Начинаем парсинг: $filePath");
 
         $handle = fopen($filePath, 'r');
@@ -91,6 +97,9 @@ class ParseLogs extends Command
                 }
             }
 
+            // Помечаем распаршенный файл
+            $this->markAsParsed($filePath);
+
         } catch (\Exception $e) {
             $this->error("Фатальная ошибка: " . $e->getMessage());
             fclose($handle);
@@ -105,7 +114,7 @@ class ParseLogs extends Command
         return 0;
     }
 
-    private function parseLine($line)
+    private function parseLine(string $line)
     {
         $pattern = '/^(\S+) \S+ \S+ \[([^]]+)\] "(\S+) ([^"]*) HTTP\/[\d.]+" \d+ \d+ "[^"]*" "([^"]*)"$/';
 
@@ -148,6 +157,35 @@ class ParseLogs extends Command
             'os' => $os,
             'architecture' => $architecture,
         ];
+    }
+
+    /**
+     * Проверяет был ли уже распаршен файл
+     * @param string $filePath Путь до файла
+     */
+    private function hasBeenParsed(string $filePath): bool
+    {
+        $hash = md5_file($filePath);
+
+        return DB::table('parsed_log_files')
+            ->where('file_hash', $hash)
+            ->exists();
+    }
+
+    /**
+     * Помечает файл как распаршенный
+     * @param string $filePath Путь до файла
+     */
+    private function markAsParsed(string $filePath)
+    {
+        $hash = md5_file($filePath);
+        $filename = basename($filePath);
+
+        DB::table('parsed_log_files')->insert([
+            'file_name' => $filename,
+            'file_hash' => $hash,
+            'parsed_at' => now(),
+        ]);
     }
 
 }
