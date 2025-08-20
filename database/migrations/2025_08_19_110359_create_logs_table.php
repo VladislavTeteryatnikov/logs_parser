@@ -15,13 +15,12 @@ return new class extends Migration
             $table->id();
             $table->ipAddress('ip')->nullable();
             $table->timestamp('request_time')->nullable();
-            $table->string('url')->nullable();
+            $table->text('url')->nullable();
             $table->text('user_agent')->nullable();
             $table->string('browser')->nullable();
             $table->string('os')->nullable();
             $table->string('architecture')->nullable();
 
-            $table->timestamps();
 
             // Индексы
             $table->index('request_time');
