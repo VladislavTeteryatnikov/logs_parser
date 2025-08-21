@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LogController;
 
-Route::get('/', function () {
-    //return view('welcome');
-    return '111';
-});
+Route::get('/', [LogController::class, 'index']);
