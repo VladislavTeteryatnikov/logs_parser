@@ -132,11 +132,11 @@
 
 
 <script>
-    // Данные из Laravel
+    /* Данные из Laravel */
     const dates = @json($dates);
     const countRequests = @json($countRequests);
 
-    // График 1
+    /* График 1 */
     new Chart(document.getElementById('requestsChart'), {
         type: 'line',
         data: {
@@ -169,25 +169,18 @@
     });
 
 
-    // Данные из Laravel
+    /* Данные из Laravel */
     const browserData = @json($browserData);
     const top3Browsers = Object.keys(browserData);
 
-    // Цвета для браузеров (с запасом)
+    /* Цвета для браузеров */
     const colors = [
         '#4285F4',
         '#FF6D01',
         '#FBBC05',
-        '#34A853',
-        '#5F6BC0',
-        '#D93025',
-        '#8E24AA',
-        '#00ACC1',
-        '#FB8C00',
-        '#689F38'
     ];
 
-    // Формируем datasets
+    /* Формируем datasets */
     const datasets = top3Browsers.map((browser, index) => {
         return {
             label: browser,
@@ -198,7 +191,7 @@
         };
     });
 
-    // График 2
+    /* График 2 */
     new Chart(document.getElementById('browsersChart'), {
         type: 'line',
         data: {

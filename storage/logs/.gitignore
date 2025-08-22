@@ -1,2 +1,4 @@
-*
+/storage/logs/*
+!/storage/logs/nginx
+!/storage/logs/nginx/*
 !.gitignore
