@@ -156,6 +156,8 @@ class LogService
     }
 
     /**
+     *
+     *
      * @param Request $request
      */
     public function getDailyStats(Request $request)

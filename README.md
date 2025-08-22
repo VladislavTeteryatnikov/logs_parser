@@ -22,18 +22,26 @@ Laravel, JavaScript, jQuery, Chart.js, Ajax, HTML, CSS, Bootstrap
 ```bash
 git clone https://github.com/VladislavTeteryatnikov/logs_parser.git
 ```
-2. Создать .env и скопировать в него .env.example
+2. Перейти в папку с проектом
+```bash
+cd logs_parser
+```
+3. Создать .env и скопировать в него .env.example
 ```bash
 cp .env.example .env
 ```
-3. Установить зависимости (автоматически будет создан ключ и накатятся миграции)
+4. Установить зависимости (автоматически будет создан ключ и накатятся миграции)
 ```bash
 composer install
 ```
-4. Запустить сервер
+5. Выполнить консольную команду для парсинга и загрузки логов в базу данных
+```bash
+php artisan app:parse-logs
+```
+6. Запустить сервер
 ```bash
 php artisan serve
 ```
-5. Открыть в браузере
+7. Открыть в браузере
  http://localhost:8000
 
