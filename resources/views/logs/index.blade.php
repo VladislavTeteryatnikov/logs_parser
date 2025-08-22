@@ -100,7 +100,7 @@
             <div class="col-md-10 offset-md-1 mb-5">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Количество запросов по дням</h5>
+                        <h5 class="card-title">Общее количество запросов по дням</h5>
                         <div class="chart-container">
                             <canvas id="requestsChart"></canvas>
                         </div>

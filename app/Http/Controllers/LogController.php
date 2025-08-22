@@ -24,12 +24,10 @@ class LogController extends Controller
             return back()->withInput()->withErrors($e->errors());
         }
 
-        $dailyStats = $logService->getDailyStats($request);
+        // Данные для таблицы
+        $tableData = $logService->getTableData($request);
 
-        // Формируем данные для таблицы
-        $tableData = $logService->getTableData($dailyStats);
-
-        // Получаем отдельно даты и кол-во запросов для графика 1
+        // Даты и кол-во запросов для графика 1
         $dates = $tableData->pluck('date');
         $countRequests = $tableData->pluck('countRequests');
 
@@ -38,11 +36,11 @@ class LogController extends Controller
         // Топ-3 браузера за период c учетом фильтров
         $top3Browsers = $logService->getTop3Browsers($request);
 
-        // Получаю общее кол-во запросов по датам
-        $totalByDay = $dailyStats->pluck('total_requests', 'date')->toArray();
+        // Общее кол-во запросов по датам
+        $totalByDay = $tableData->pluck('countRequests', 'date')->toArray();
 
-        // Получаем данные для графика 2
-        $browserData = $logService->getBrowserData($top3Browsers, $request, $totalByDay);
+        // Данные для графика 2
+        $browserData = $logService->getBrowserData($request, $top3Browsers, $totalByDay);
 
         // Данные для фильтров select
         $oses = Log::query()->distinct()->pluck('os')->filter();
@@ -67,8 +65,7 @@ class LogController extends Controller
     public function getTable(Request $request, LogService $logService)
     {
         // Данные для таблицы
-        $dailyStats = $logService->getDailyStats($request);
-        $tableData = $logService->getTableData($dailyStats);
+        $tableData = $logService->getTableData($request);
 
         // Сортировка таблицы
         $sort = $request->get('sort');

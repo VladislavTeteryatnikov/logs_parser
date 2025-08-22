@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Http\Request;
 use App\Models\Log;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -57,9 +58,9 @@ class LogService
      * Применить фильтры к запросу
      *
      * @param $query
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      */
-    private function applyFilters($query, $request)
+    private function applyFilters($query, Request $request)
     {
         return $query
             ->when($request->filled('from'), fn($q) => $q->whereDate('request_time', '>=', $request->from))
@@ -69,40 +70,11 @@ class LogService
     }
 
     /**
-     * Форматирует данные для таблицы
-     *
-     * @param $dailyStats
-     */
-    public function getTableData($dailyStats)
-    {
-        if ($dailyStats->isEmpty()) {
-            return collect();
-        }
-
-        return $dailyStats->map(function ($day) {
-            // Считаем и сортируем URL
-            $urls = array_count_values(explode(',', $day->urls));
-            arsort($urls);
-
-            // Считаем и сортируем браузеры
-            $browsers = array_count_values(explode(',', $day->browsers));
-            arsort($browsers);
-
-            return [
-                'date' => $day->date,
-                'countRequests' => $day->total_requests,
-                'url' => array_key_first($urls),
-                'browser' =>array_key_first($browsers),
-            ];
-        });
-    }
-
-    /**
      * Возвращает топ-3 самых используемых браузеров за период с учётом фильтров
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      */
-    public function getTop3Browsers($request)
+    public function getTop3Browsers(Request $request)
     {
         $query = Log::selectRaw('browser, COUNT(*) as count')
             ->whereNotNull('browser');
@@ -120,11 +92,11 @@ class LogService
     /**
      * Формирует данные для графика доли топ 3 браузеров по дням
      *
-     * @param array $top3Browsers Массив топ 3 браузеров
      * @param Request $request
+     * @param array $top3Browsers Массив топ 3 браузеров
      * @param array $totalByDay Массив: дата => общее кол-во запросов
      */
-    public function getBrowserData($top3Browsers, $request, $totalByDay)
+    public function getBrowserData(Request $request, $top3Browsers, $totalByDay)
     {
         $browserData = [];
 
@@ -156,24 +128,100 @@ class LogService
     }
 
     /**
-     *
+     * Данные для таблицы
      *
      * @param Request $request
      */
-    public function getDailyStats(Request $request)
+    public function getTableData(Request $request)
     {
-        // Агрегируем данные по дате
+        // Количество запросов по дням
+        $countRequestsByDate = $this->getCountRequestsByDate($request);
+
+        // Самый популярный браузер по дням
+        $topBrowserByDate = $this->getTopBrowserByDate($request);
+
+        // Самый популярный URL по дням
+        $topUrlByDate = $this->getTopUrlByDate($request);
+
+        $result = $countRequestsByDate->map(function ($item) use ($topBrowserByDate, $topUrlByDate) {
+            $date = $item['date'];
+            return [
+                'date' => $date,
+                'countRequests' => $item['total_requests'],
+                'browser' => $topBrowserByDate->get($date),
+                'url' => $topUrlByDate->get($date),
+            ];
+        });
+
+        return $result;
+    }
+
+    /**
+     * Общее количество запросов по дням (с учетом фильтров)
+     *
+     * @param Request $request
+     */
+    private function getCountRequestsByDate(Request $request)
+    {
         $query = Log::selectRaw('
             DATE(request_time) as date,
-            COUNT(*) as total_requests,
-            GROUP_CONCAT(url) as urls,
-            GROUP_CONCAT(browser) as browsers
+            COUNT(*) as total_requests
         ');
 
         // Применяем фильтры
         $this->applyFilters($query, $request);
 
         return $query->groupBy('date')->orderBy('date')->get();
+    }
+
+    /**
+     * Самый популярный браузер по дням (с учетом фильтров)
+     *
+     * @param Request $request
+     */
+    private function getTopBrowserByDate(Request $request)
+    {
+        $subQuery = Log::selectRaw('
+            DATE(request_time) as date,
+            browser,
+            COUNT(*) as count_requests,
+            ROW_NUMBER() OVER (PARTITION BY DATE(request_time) ORDER BY COUNT(*) DESC) as rn
+        ')
+            ->whereNotNull('browser')
+            ->groupBy('date', 'browser');
+
+        // Применяем филтры
+        $this->applyFilters($subQuery, $request);
+
+        return DB::query()
+            ->from($subQuery, 'top_browsers')
+            ->where('rn', 1)
+            ->orderBy('date')
+            ->pluck('browser', 'date');
+    }
+
+    /**
+     * Самый популярный url по дням (с учетом фильтров)
+     *
+     * @param Request $request
+     */
+    private function getTopUrlByDate(Request $request)
+    {
+        $subQuery = Log::selectRaw('
+            DATE(request_time) as date,
+            url,
+            COUNT(*) as count_requests,
+            ROW_NUMBER() OVER (PARTITION BY DATE(request_time) ORDER BY COUNT(*) DESC) as rn
+        ')
+            ->groupBy('date', 'url');
+
+        // Применяем фильтры
+        $this->applyFilters($subQuery, $request);
+
+        return DB::query()
+            ->from($subQuery, 'top_urls')
+            ->where('rn', 1)
+            ->pluck('url', 'date');
     }
 
     /**
@@ -184,7 +232,7 @@ class LogService
      * @param $direction
      * @param $allowedSorts
      */
-    public function sortTableData($tableData, $sort = null, $direction = 'asc', $allowedSorts = [])
+    public function sortTableData($tableData, $sort = null, string $direction = 'asc', array $allowedSorts = [])
     {
         if (!$sort || !in_array($sort, $allowedSorts)) {
             return $tableData;
