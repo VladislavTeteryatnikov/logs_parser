@@ -1,4 +1,3 @@
-/storage/logs/*
-!/storage/logs/nginx
-!/storage/logs/nginx/*
-!.gitignore
+*.log
+!nginx/
+!nginx/*
