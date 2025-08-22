@@ -1,7 +1,7 @@
 <table class="table table-hover table-bordered">
     <thead class="table-primary">
     <tr>
-        <th style="width: 10%;">
+        <th style="width: 15%;">
             <a href="#" class="sort-link text-dark text-decoration-none d-flex align-items-center"
                data-sort="date">
                 Дата
@@ -16,7 +16,7 @@
                 @endif
             </a>
         </th>
-        <th style="width: 15%;">
+        <th style="width: 20%;">
             <a href="#" class="sort-link text-dark text-decoration-none d-flex align-items-center"
                data-sort="countRequests">
                 Число запросов
@@ -34,7 +34,7 @@
         <th style="width: 50%;">
             <a href="#" class="sort-link text-dark text-decoration-none d-flex align-items-center"
                data-sort="url">
-                Самый популярный URL
+                Топ URL
                 @if(request('sort') === 'url')
                     @if(request('direction') === 'asc')
                         <i class="fas fa-arrow-up ms-1 small"></i>
@@ -46,10 +46,10 @@
                 @endif
             </a>
         </th>
-        <th style="width: 25%;">
+        <th style="width: 15%;">
             <a href="#" class="sort-link text-dark text-decoration-none d-flex align-items-center"
                data-sort="browser">
-                Самый популярный браузер
+                Топ браузер
                 @if(request('sort') === 'browser')
                     @if(request('direction') === 'asc')
                         <i class="fas fa-arrow-up ms-1 small"></i>
