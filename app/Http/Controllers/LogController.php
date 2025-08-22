@@ -9,31 +9,22 @@ use Illuminate\Validation\ValidationException;
 
 class LogController extends Controller
 {
+    /**
+     * Метод для показа таблицы и графиков
+     *
+     * @param Request $request Объект запроса
+     * @param LogService $logService Сервис, куда вынесена основная логика
+     */
     public function index(Request $request, LogService $logService)
     {
-        // Получаем фильтры по датам для валидации
-        $from = $request->from;
-        $to = $request->to;
-
         // Проверяем диапазон дат
         try {
-            $logService->validateDate($from, $to);
+            $logService->validateDate($request->from, $request->to);
         } catch (ValidationException $e) {
             return back()->withInput()->withErrors($e->errors());
         }
 
-        // Агрегируем данные по дате
-        $query = Log::selectRaw('
-            DATE(request_time) as date,
-            COUNT(*) as total_requests,
-            GROUP_CONCAT(url) as urls,
-            GROUP_CONCAT(browser) as browsers
-        ');
-
-        // Применяем фильтры
-        $logService->applyFilters($query, $request);
-
-        $dailyStats = $query->groupBy('date')->orderBy('date')->get();
+        $dailyStats = $logService->getDailyStats($request);
 
         // Формируем данные для таблицы
         $tableData = $logService->getTableData($dailyStats);
@@ -41,7 +32,6 @@ class LogController extends Controller
         // Получаем отдельно даты и кол-во запросов для графика 1
         $dates = $tableData->pluck('date');
         $countRequests = $tableData->pluck('countRequests');
-
 
         // ДАННЫЕ ДЛЯ ГРАФИКА 2
 
@@ -53,7 +43,7 @@ class LogController extends Controller
 
         // Получаем данные для графика 2
         $browserData = $logService->getBrowserData($top3Browsers, $request, $totalByDay);
-        //dd($browserData);
+
         // Данные для фильтров select
         $oses = Log::query()->distinct()->pluck('os')->filter();
         $architectures = Log::query()->distinct()->pluck('architecture')->filter();
@@ -66,5 +56,26 @@ class LogController extends Controller
             'oses',
             'architectures'
         ));
+    }
+
+    /**
+     * Метод для обновления таблицы при сортировке (используется в ajax)
+     *
+     * @param Request $request Объект запроса
+     * @param LogService $logService Сервис, куда вынесена основная логика
+     */
+    public function getTable(Request $request, LogService $logService)
+    {
+        // Данные для таблицы
+        $dailyStats = $logService->getDailyStats($request);
+        $tableData = $logService->getTableData($dailyStats);
+
+        // Сортировка таблицы
+        $sort = $request->get('sort');
+        $direction = $request->get('direction', 'asc');
+        $allowedSorts = ['date', 'countRequests', 'url', 'browser'];
+        $tableData = $logService->sortTableData($tableData, $sort, $direction, $allowedSorts);
+
+        return view('logs.parts.table', compact('tableData'))->render();
     }
 }

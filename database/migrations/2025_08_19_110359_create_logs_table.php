@@ -21,7 +21,6 @@ return new class extends Migration
             $table->string('os')->nullable();
             $table->string('architecture')->nullable();
 
-
             // Индексы
             $table->index('request_time');
             $table->index('os');
