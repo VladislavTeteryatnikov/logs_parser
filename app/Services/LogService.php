@@ -229,8 +229,8 @@ class LogService
      *
      * @param $tableData
      * @param $sort
-     * @param $direction
-     * @param $allowedSorts
+     * @param string $direction
+     * @param array $allowedSorts
      */
     public function sortTableData($tableData, $sort = null, string $direction = 'asc', array $allowedSorts = [])
     {

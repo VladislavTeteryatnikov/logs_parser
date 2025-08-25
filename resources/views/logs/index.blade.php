@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Анализ логов</title>
+    <title>Анализ логов Nginx</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -137,36 +137,39 @@
     const countRequests = @json($countRequests);
 
     /* График 1 */
-    new Chart(document.getElementById('requestsChart'), {
-        type: 'line',
-        data: {
-            labels: dates,
-            datasets: [{
-                label: 'Число запросов',
-                data: countRequests,
-                borderColor: '#1a73e8',
-                backgroundColor: '#1a73e8',
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Дата'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Кол-во запросов, шт'
+    if (dates.length > 0 && countRequests.length > 0) {
+        new Chart(document.getElementById('requestsChart'), {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Число запросов',
+                    data: countRequests,
+                    borderColor: '#1a73e8',
+                    backgroundColor: '#1a73e8',
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Дата'
+                        }
                     },
-                    beginAtZero: true
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Кол-во запросов, шт'
+                        },
+                        beginAtZero: true
+                    }
                 }
             }
-        }
-    });
+        });
+    }
+
 
 
     /* Данные из Laravel */
@@ -180,44 +183,47 @@
         '#FBBC05',
     ];
 
-    /* Формируем datasets */
-    const datasets = top3Browsers.map((browser, index) => {
-        return {
-            label: browser,
-            data: browserData[browser] || Array(dates.length).fill(0),
-            borderColor: colors[index],
-            backgroundColor: colors[index],
-            fill: false,
-        };
-    });
+    if (top3Browsers.length > 0) {
+        /* Формируем datasets */
+        const datasets = top3Browsers.map((browser, index) => {
+            return {
+                label: browser,
+                data: browserData[browser] || Array(dates.length).fill(0),
+                borderColor: colors[index],
+                backgroundColor: colors[index],
+                fill: false,
+            };
+        });
 
-    /* График 2 */
-    new Chart(document.getElementById('browsersChart'), {
-        type: 'line',
-        data: {
-            labels: dates,
-            datasets
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Дата'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Кол-во запросов, %'
+        /* График 2 */
+        new Chart(document.getElementById('browsersChart'), {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Дата'
+                        }
                     },
-                    min: 0,
-                    max: 100
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Кол-во запросов, %'
+                        },
+                        min: 0,
+                        max: 100
+                    }
                 }
             }
-        }
-    });
+        });
+    }
+
 </script>
 </body>
 </html>

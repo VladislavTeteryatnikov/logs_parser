@@ -57,7 +57,7 @@ class LogController extends Controller
     }
 
     /**
-     * Метод для обновления таблицы при сортировке (используется в ajax)
+     * Метод для обновления таблицы при сортировке по столбцам (используется в ajax)
      *
      * @param Request $request Объект запроса
      * @param LogService $logService Сервис, куда вынесена основная логика

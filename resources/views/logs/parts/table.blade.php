@@ -1,4 +1,4 @@
-<table class="table table-hover table-bordered">
+<table class="table table-hover table-bordered" style="table-layout: fixed; width: 100%;">
     <thead class="table-primary">
     <tr>
         <th style="width: 15%;">
